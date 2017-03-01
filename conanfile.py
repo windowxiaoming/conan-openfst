@@ -7,19 +7,26 @@ from conans.tools import patch
 
 class OpenFSTConan(ConanFile):
     name = "OpenFST"
-    version = "1.4.1-kaldi"
+    version = "1.6.1"
+    license = "Apache 2.0"
+
     generators = "cmake"
     settings = { "os": ["Linux"],
                  "compiler": {"gcc": {"libcxx": ["libstdc++11"]},
                               "clang": {"libcxx": ["libstdc++11"]}},
                  "arch": ["x86_64"],
                  "build_type": ["Debug", "Release"]}
-    license = "Apache 2.0"
+    default_settings = ("os=Linux", "compiler=gcc",
+                        "compiler.libcxx=libstdc++11", "arch=x86_64")
+    options = {"static": [True, False],
+               "shared": [True, False],
+               "far": [True, False],
+               "ngram_fsts": [True, False]}
+    default_options = "static=True", "shared=True", "far=True", "ngram_fsts=True"
+
     url = "http://openfst.org"
-    source_url = "http://openfst.org/twiki/pub/FST/FstDownload/openfst-1.4.1.tar.gz"
-    kaldi_patch_url = "https://raw.githubusercontent.com/kaldi-asr/kaldi/master/tools/extras/openfst-1.4.1.patch"
-    kaldi_patch_path = "openfst-1.4.1.patch"
-    unzipped_path = "openfst-1.4.1"
+    source_url = "http://openfst.cs.nyu.edu/twiki/pub/FST/FstDownload/openfst-{version}.tar.gz".format(version=version)
+    unzipped_path = "openfst-{}".format(version)
 
     def source(self):
         self.targz_name = os.path.basename(self.source_url)
@@ -27,13 +34,20 @@ class OpenFSTConan(ConanFile):
         untargz(self.targz_name)
         os.unlink(self.targz_name)
 
-        # Apply Kaldi patch
-        download(self.kaldi_patch_url, self.kaldi_patch_path)
-        patch(self.unzipped_path, self.kaldi_patch_path, strip=1)
-
     def build(self):
         env = ConfigureEnvironment(self)
-        configure_opts = "--prefix={} --enable-static --enable-shared --enable-far --enable-ngram-fsts LIBS=\"-ldl\"".format(self.package_folder)
+
+        configure_opts = "--prefix={} ".format(self.package_folder)
+        if self.options.static:
+            configure_opts += " --enable-static "
+        if self.options.shared:
+            configure_opts += " --enable-shared "
+        if self.options.far:
+            configure_opts += " --enable-far "
+        if self.options.ngram_fsts:
+            configure_opts += "--enable-ngram-fsts "
+        configure_opts += ' LIBS="-ldl" '
+
         self.run("{} {}/{}/configure {}".format(env.command_line_env, self.conanfile_directory, self.unzipped_path, configure_opts))
         self.run("{} make -j{} install ".format(env.command_line_env, cpu_count()))
 

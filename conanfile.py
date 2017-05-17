@@ -24,7 +24,7 @@ class OpenFSTConan(ConanFile):
                "ngram_fsts": [True, False]}
     default_options = "static=True", "shared=True", "far=True", "ngram_fsts=True"
 
-    url = "http://openfst.org"
+    url = "https://github.com/laeknaromur/conan-openfst"
     source_url = "http://openfst.cs.nyu.edu/twiki/pub/FST/FstDownload/openfst-{version}.tar.gz".format(version=version)
     unzipped_path = "openfst-{}".format(version)
 

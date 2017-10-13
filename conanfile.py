@@ -61,4 +61,4 @@ class OpenFSTConan(ConanFile):
         self.copy("*.a", dst="lib", src="lib")
 
     def package_info(self):
-        self.cpp_info.libs = ["fst"]
+        self.cpp_info.libs = ["fst", "dl"]

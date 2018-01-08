@@ -1,5 +1,5 @@
 import os
-from conans import ConanFile, AutoToolsBuildEnvironment
+from conans import ConanFile, AutoToolsBuildEnvironment, tools
 from conans.tools import download
 from conans.tools import untargz
 from conans.tools import cpu_count
@@ -48,9 +48,8 @@ class OpenFSTConan(ConanFile):
 
         env_build = AutoToolsBuildEnvironment(self)
         with environment_append(env_build.vars):
-            self.run("{}/{}/configure {} ".format(self.conanfile_directory,
-                                                  self.unzipped_path,
-                                                  configure_opts))
+            self.run("{}/configure {} ".format(self.unzipped_path,
+                                               configure_opts))
             self.run("make -j{} install".format(cpu_count()))
 
     def package(self):

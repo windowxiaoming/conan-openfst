@@ -7,10 +7,10 @@ from conans.tools import patch, environment_append
 
 class OpenFSTConan(ConanFile):
     name = "OpenFST"
-    version = "1.6.1"
+    version = "1.6.5"
     license = "Apache 2.0"
 
-    generators = "cmake"
+    generators = "cmake", "virtualbuildenv", "virtualrunenv"
     settings = { "os": ["Linux"],
                  "compiler": {"gcc": {"libcxx": ["libstdc++11"], "version": None},
                               "clang": {"libcxx": ["libstdc++11"], "version": None}},
@@ -18,14 +18,41 @@ class OpenFSTConan(ConanFile):
                  "build_type": ["Debug", "Release"]}
     default_settings = ("os=Linux", "compiler=gcc",
                         "compiler.libcxx=libstdc++11", "arch=x86_64")
-    options = {"static": [True, False],
-               "shared": [True, False],
-               "far": [True, False],
-               "ngram_fsts": [True, False]}
-    default_options = "static=True", "shared=True", "far=True", "ngram_fsts=True"
+    options = {
+        "static": [True, False],
+        "shared": [True, False],
+        "far": [True, False],
+        "ngram_fsts": [True, False],
+        "const_fsts": [True, False],
+        "compact_fsts": [True, False],
+        "compress": [True, False],
+        "linear_fsts": [True, False],
+        "lookahead_fsts": [True, False],
+        "python": [True, False],
+        "pdt": [True, False],
+        "mpdt": [True, False],
+        "special": [True, False],
+        "bin": [True, False],
+    }
+    default_options = (
+        "static=True",
+        "shared=True",
+        "far=True",
+        "ngram_fsts=True",
+        "const_fsts=True",
+        "compact_fsts=True",
+        "compress=True",
+        "linear_fsts=True",
+        "lookahead_fsts=True",
+        "python=True",
+        "pdt=True",
+        "mpdt=True",
+        "special=True",
+        "bin=True"
+    )
 
     url = "https://github.com/laeknaromur/conan-openfst"
-    source_url = "http://openfst.cs.nyu.edu/twiki/pub/FST/FstDownload/openfst-{version}.tar.gz".format(version=version)
+    source_url = "http://openfst.org/twiki/pub/FST/FstDownload/openfst-{version}.tar.gz".format(version=version)
     unzipped_path = "openfst-{}".format(version)
 
     def source(self):
@@ -35,16 +62,25 @@ class OpenFSTConan(ConanFile):
         os.unlink(self.targz_name)
 
     def build(self):
+        features = [
+            "--enable-static={}".format("yes" if self.options.static else "no"),
+            "--enable-shared={}".format("yes" if self.options.shared else "no"),
+            "--enable-compact-fsts={}".format("yes" if self.options.compact_fsts else "no"),
+            "--enable-compress={}".format("yes" if self.options.compress else "no"),
+            "--enable-const-fsts={}".format("yes" if self.options.const_fsts else "no"),
+            "--enable-far={}".format("yes" if self.options.far else "no"),
+            "--enable-linear-fsts={}".format("yes" if self.options.linear_fsts else "no"),
+            "--enable-lookahead-fsts={}".format("yes" if self.options.lookahead_fsts else "no"),
+            "--enable-mpdt={}".format("yes" if self.options.mpdt else "no"),
+            "--enable-ngram-fsts={}".format("yes" if self.options.ngram_fsts else "no"),
+            "--enable-pdt={}".format("yes" if self.options.pdt else "no"),
+            "--enable-python={}".format("yes" if self.options.python else "no"),
+            "--enable-special={}".format("yes" if self.options.special else "no"),
+            "--enable-bin={}".format("yes" if self.options.bin else "no")
+        ]
         configure_opts = "--prefix={} ".format(self.package_folder)
-        if self.options.static:
-            configure_opts += " --enable-static "
-        if self.options.shared:
-            configure_opts += " --enable-shared "
-        if self.options.far:
-            configure_opts += " --enable-far "
-        if self.options.ngram_fsts:
-            configure_opts += "--enable-ngram-fsts "
         configure_opts += ' LIBS=\"-ldl\" '
+        configure_opts += ' '.join(features)
 
         env_build = AutoToolsBuildEnvironment(self)
         with environment_append(env_build.vars):

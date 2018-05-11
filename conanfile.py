@@ -90,6 +90,7 @@ class OpenFSTConan(ConanFile):
 
     def package(self):
         self.copy("*.h", dst="include/fst", src="include/fst")
+        self.copy("*", dst="bin", src="bin")
         self.copy("*.lib", dst="lib", src="lib")
         self.copy("*.la", dst="lib", src="lib")
         self.copy("*.so*", dst="lib", src="lib")

@@ -1,0 +1,13 @@
+image: gcc:6.3
+
+pipelines:
+  default:
+    - step:
+        name: Build, test and upload OpenFST conan package.
+        script:
+          - apt-get update -q && apt-get install -yqq python-pip
+          - pip install conan
+          - conan config install git@bitbucket.org:laeknaromur/conan-config.git
+          - conan user -r lr-aws -p $CONAN_SERVER_KEY $CONAN_SERVER_USER
+          - conan create . laeknaromur/stable
+          - conan upload -r lr-aws OpenFST/* --all --confirm
